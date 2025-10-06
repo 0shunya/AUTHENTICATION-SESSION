@@ -1,8 +1,9 @@
 import express from 'express'
 import db from '../db/index.js'
-import {usersTable} from '../db/schema.js'
+import {usersTable, usersSession} from '../db/schema.js'
 import {eq} from 'drizzle-orm'
 import { randomBytes, createHmac } from 'crypto'
+import { error } from 'console'
 
 const router = express.Router();
 
@@ -32,6 +33,43 @@ router.post('/signup', async (req, res) => {
         return res.status(201).json({status: 'success', data: { userId: user.id }})
 })
 
-router.post('/login')
+router.post('/login',  async (req, res) => {
+    const {email, password} = req.body;
+
+    const [existingUsers] = await db
+        .select({
+            id: usersTable.id,
+            email: usersTable.email,
+            salt: usersTable.salt,
+            password: usersTable.password
+        })
+        .from(usersTable)
+        .where((table) => eq(table.email, email));
+
+        console.log(existingUsers);
+        
+    
+            if(!existingUsers){
+                return res.status(404).json({error: `user with email ${email} doesn't exists`})
+            }
+
+            const salt = existingUsers.salt
+            const existingHash = existingUsers.password
+
+            const newHash = createHmac('sha256', salt)
+               .update(password)
+               .digest('hex');
+
+
+            if(newHash !== existingHash) {
+                return res.status(400).json({error: 'Incorrect Password'})
+            }
+
+        //Generate a session
+        const [session] = await db.insert(usersSession).values({
+            userId: existingUsers.id
+        }).returning({id: usersSession.id,})
+    return res.json({status: 'success', sessionId: session.id})
+});
 
 export default router;
