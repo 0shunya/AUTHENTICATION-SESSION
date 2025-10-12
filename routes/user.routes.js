@@ -7,26 +7,27 @@ import { error } from 'console'
 
 const router = express.Router();
 
+router.patch('/', async (req, res) => {
+    const user = req.user;
+
+    if(!user){
+        return res.status(401).json({error: 'You are not logged in'})
+    }
+
+    const { name } = req.body
+    await db.update(usersTable).set({ name }).where(eq(usersTable.id, user.id));
+
+    return res.json({ status: 'success'})
+})
+
 router.get('/', async (req, res) => {
-    const sessionId = req.headers['session-id']
-    if(!sessionId){
+    const user = req.user;
+
+    if(!user){
         return res.status(401).json({error: 'You are not logged in'})
     }
 
-    const [data] = await db.select({
-        id: usersSession.id,
-        userId: usersTable.name,
-        email: usersTable.email
-    })
-    .from(usersSession)
-    .rightJoin(usersTable, eq(usersTable.id, usersSession.userId))
-    .where((table)=> eq(table.id, sessionId));
-
-        if(!data){
-        return res.status(401).json({error: 'You are not logged in'})
-    }
-
-    return res.json({ data })
+    return res.json({ user })
 });
 
 router.post('/signup', async (req, res) => {
@@ -86,9 +87,9 @@ router.post('/login',  async (req, res) => {
             }
 
         //Generate a session
-        const [session] = await db.insert(usersSession).values({
-            userId: existingUsers.id
-        }).returning({id: usersSession.id,})
+        // const [session] = await db.insert(usersSession).values({
+        //     userId: existingUsers.id
+        // }).returning({id: usersSession.id,})
     return res.json({status: 'success', sessionId: session.id})
 });
 
