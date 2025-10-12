@@ -7,7 +7,27 @@ import { error } from 'console'
 
 const router = express.Router();
 
-router.get('/');
+router.get('/', async (req, res) => {
+    const sessionId = req.headers['session-id']
+    if(!sessionId){
+        return res.status(401).json({error: 'You are not logged in'})
+    }
+
+    const [data] = await db.select({
+        id: usersSession.id,
+        userId: usersTable.name,
+        email: usersTable.email
+    })
+    .from(usersSession)
+    .rightJoin(usersTable, eq(usersTable.id, usersSession.userId))
+    .where((table)=> eq(table.id, sessionId));
+
+        if(!data){
+        return res.status(401).json({error: 'You are not logged in'})
+    }
+
+    return res.json({ data })
+});
 
 router.post('/signup', async (req, res) => {
     const { name, email, password } = req.body;
