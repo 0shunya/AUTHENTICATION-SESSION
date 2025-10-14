@@ -4,6 +4,7 @@ import {usersTable, usersSession} from '../db/schema.js'
 import {eq} from 'drizzle-orm'
 import { randomBytes, createHmac } from 'crypto'
 import { error } from 'console'
+import jwt from 'jsonwebtoken'
 
 const router = express.Router();
 
@@ -86,11 +87,19 @@ router.post('/login',  async (req, res) => {
                 return res.status(400).json({error: 'Incorrect Password'})
             }
 
+            const payload = {
+                id: existingUsers.id,
+                email: existingUsers.email,
+                name: existingUsers.name
+            }
+
+            const token = jwt.sign(payload, process.env.JWT_SECRET)
+
         //Generate a session
         // const [session] = await db.insert(usersSession).values({
         //     userId: existingUsers.id
         // }).returning({id: usersSession.id,})
-    return res.json({status: 'success', sessionId: session.id})
+    return res.json({status: 'success', token})
 });
 
 export default router;
