@@ -1,14 +1,11 @@
 import express from 'express';
 import db from '../db/index.js';
 import { usersTable } from '../db/schema.js';
+import { ensureAuthenticated } from '../middlewares/auth.middleware.js'
 
 const router = express.Router();
 
-router.get('/users',  async(req, res) => {
-
-    if(!req.user) {
-        return res.status(401).json({ error: 'You must be authenticated to access this'})
-    }
+router.get('/users',ensureAuthenticated,  async(req, res) => {
 
   const users = await db
             .select({

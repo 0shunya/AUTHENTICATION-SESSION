@@ -3,17 +3,12 @@ import db from '../db/index.js'
 import {usersTable, usersSession} from '../db/schema.js'
 import {eq} from 'drizzle-orm'
 import { randomBytes, createHmac } from 'crypto'
-import { error } from 'console'
+import { ensureAuthenticated } from '../middlewares/auth.middleware.js'
 import jwt from 'jsonwebtoken'
 
 const router = express.Router();
 
-router.patch('/', async (req, res) => {
-    const user = req.user;
-
-    if(!user){
-        return res.status(401).json({error: 'You are not logged in'})
-    }
+router.patch('/', ensureAuthenticated, async (req, res) => {
 
     const { name } = req.body
     await db.update(usersTable).set({ name }).where(eq(usersTable.id, user.id));
