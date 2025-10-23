@@ -2,7 +2,7 @@ import express from'express';
 import userRouter from './routes/user.routes.js'
 import adminRouter from './routes/admin.routes.js'
 import jwt from 'jsonwebtoken'
-import {authenticationMiddleware} from './middlewares/auth.middleware.js'
+import {authenticationMiddleware} from './middleware/auth.middleware.js'
 
 const app = express();
 const PORT = process.env.PORT ?? 8000;

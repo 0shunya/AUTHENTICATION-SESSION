@@ -3,7 +3,7 @@ import db from '../db/index.js'
 import {usersTable, usersSession} from '../db/schema.js'
 import {eq} from 'drizzle-orm'
 import { randomBytes, createHmac } from 'crypto'
-import { ensureAuthenticated } from '../middlewares/auth.middleware.js'
+import { ensureAuthenticated } from '../middleware/auth.middleware.js'
 import jwt from 'jsonwebtoken'
 
 const router = express.Router();
@@ -58,6 +58,7 @@ router.post('/login',  async (req, res) => {
             id: usersTable.id,
             email: usersTable.email,
             salt: usersTable.salt,
+            role: usersTable.role,
             password: usersTable.password
         })
         .from(usersTable)
@@ -85,7 +86,8 @@ router.post('/login',  async (req, res) => {
             const payload = {
                 id: existingUsers.id,
                 email: existingUsers.email,
-                name: existingUsers.name
+                name: existingUsers.name,
+                role: existingUsers.role,
             }
 
             const token = jwt.sign(payload, process.env.JWT_SECRET)
