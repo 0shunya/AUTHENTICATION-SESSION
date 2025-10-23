@@ -7,7 +7,10 @@ const router = express.Router();
 
 const adminRestrictMiddleware = restrictToRole('ADMIN');
 
-router.get('/users',ensureAuthenticated, adminRestrictMiddleware, async(req, res) => {
+router.use(ensureAuthenticated)
+router.use(restrictToRole)
+
+router.get('/users', async(req, res) => {
 
   const users = await db
             .select({
